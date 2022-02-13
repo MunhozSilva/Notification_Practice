@@ -1,14 +1,20 @@
 package com.example.notificationpractice
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.core.content.ContextCompat
 
 
 class MainActivity : AppCompatActivity() {
@@ -31,6 +37,20 @@ class MainActivity : AppCompatActivity() {
 
             createNotificationChannel()
         }
+
+        val permissionLauncher = registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
+            if (isGranted) {
+                toast("Permissão recebida")
+            } else {
+                toast("Explicar para o usuário o porquê da permissão")
+            }
+        }
+
+        val permissionButton = findViewById<Button>(R.id.button_request_permission)
+        permissionButton.setOnClickListener {
+            requestPermission(permissionLauncher)
+        }
+
     }
 
     private fun createNotificationChannel() {
@@ -45,5 +65,28 @@ class MainActivity : AppCompatActivity() {
             val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             notificationManager.createNotificationChannel(channel)
         }
+    }
+
+    private fun toast(text: String) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun requestPermission(requestPermission: ActivityResultLauncher<String>) = when {
+        ContextCompat
+            .checkSelfPermission(this, PERMISSION) == PackageManager.PERMISSION_GRANTED -> {
+            // Usar a API
+        }
+
+        shouldShowRequestPermissionRationale(PERMISSION) -> {
+            toast("Explicar para o usuário o porquê da permissão")
+        }
+
+        else -> {
+            requestPermission.launch(PERMISSION)
+        }
+    }
+
+    private companion object {
+        private const val PERMISSION = Manifest.permission.READ_EXTERNAL_STORAGE
     }
 }
